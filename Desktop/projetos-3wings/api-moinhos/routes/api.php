@@ -6,6 +6,10 @@ use App\Http\Controllers\MoinhosController;
 use App\Http\Controllers\AgendadoController;
 use App\Http\Controllers\AtendimentoController;
 use App\Http\Controllers\DiferencaMoinhosController;
+use App\Http\Controllers\FiltroController;
+use App\Http\Controllers\FinalizadoController;
+use App\Http\Controllers\PosexameController;
+use App\Models\Finalizado;
 
 /*
 |--------------------------------------------------------------------------
@@ -23,8 +27,22 @@ use App\Http\Controllers\DiferencaMoinhosController;
 // });
 
 Route::get('/moinhos', [MoinhosController::class, 'dados']);
+Route::post('/moinhos/consulta', [FiltroController::class, 'consulta']);
 Route::get('/moinhos/diferenca', [DiferencaMoinhosController::class, 'diferenca']);
-Route::post('/moinhos/atualiza', [DiferencaMoinhosController::class, 'atualizaDados']);
+
+Route::post('/moinhos/atualiza/agendado', [DiferencaMoinhosController::class, 'atualizaDados']);
+
 Route::post('/moinhos/agendar', [AgendadoController::class, 'agendar']);
+Route::post('/moinhos/agendar/tarefa/{id}', [AgendadoController::class, 'pegarTarefa']);
+
+
+Route::post('/moinhos/observacao/{id}', [AgendadoController::class, 'observacao']);
+
 Route::post('/moinhos/cancelar', [AgendadoController::class, 'agendarCancelar']);
+
 Route::post('/moinhos/atendimento', [AtendimentoController::class, 'atendimento']);
+Route::post('/moinhos/posexame', [PosexameController::class, 'posexame']);
+
+
+
+Route::post('/moinhos/finalizar', [FinalizadoController::class, 'finalizado']);

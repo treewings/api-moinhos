@@ -2,71 +2,42 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Views\Moinhos as ViewsMoinhos;
-use App\Models\Agendado;
-use App\Models\Atendimento;
-use App\Models\Finalizado;
-use App\Models\Moinhos;
-use App\Models\Posexame;
+use App\Http\Requests\ConsultaValidation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use PhpParser\Node\Expr\Cast\Object_;
 
-class MoinhosController extends Controller
+class FiltroController extends Controller
 {
-    public function dados()
-    {
-        $remove = Moinhos::all();
+    public function consulta(ConsultaValidation $request){
 
-        foreach($remove as $dados){
-                $dados->delete();
-        }
-
-        $view = new ViewsMoinhos();
-        $view = $view->dados();
-    
-       while($dados = oci_fetch_assoc($view)){
-            $moinhos = Agendado::where('acess_number', $dados['acess_number'])->get();
-            $atendimento = Atendimento::where('acess_number', $dados['acess_number'])->get();
-            $posExame = Posexame::where('acess_number', $dados['acess_number'])->get();
-            $finalizado = Finalizado::where('acess_number', $dados['acess_number'])->get();
-
-            if(!isset($moinhos[0]) && !isset($atendimento[0]) && !isset($posExame[0]) && !isset($finalizado[0]) && $dados['sn_cancelado'] != 'S'){
-                Moinhos::create([
-                    'acess_number' => $dados['acess_number'],
-                    'codigo_setor_exame' => $dados['codigo_setor_exame'],
-                    'data' =>  $dados['hora_pedidoX'],
-                    'dados' => json_encode($dados)
-                ]);
+        $consulta = function ($query) use ($request)
+        {
+            if($request->has('codigo_setor_exame')){
+                $query->where('codigo_setor_exame', $request->get('codigo_setor_exame'));
             }
-       }
+        };
 
-       $filtro = [];
-       $umovCheca = [];
-
-       $moinhos = DB::table('moinhos')->reorder('data', 'asc')->get();
-       $agendados = Agendado::orderByDesc('created_at')->get();
-       $atendimentos = Atendimento::all();
-       $posexame = Posexame::all();
-       $finalizado = Finalizado::all();
-       
-       
-
-
-       $Atualizado = [];
-       foreach($moinhos as $dadosAtulizado){
+        $moinhos = DB::table('moinhos')->where($consulta)->get();
+        $agendados = DB::table('agendados')->where($consulta)->get();
+        $atendimentos = DB::table('atendimentos')->where($consulta)->get();
+        $posexame = DB::table('posexames')->where($consulta)->get();
+        $finalizado = DB::table('finalizados')->where($consulta)->get();
+        $filtro = [];
+        $Atualizado = [];
+        foreach($moinhos as $dadosAtulizado){
             $setor = json_decode($dadosAtulizado->dados, true);
             $filtro[$dadosAtulizado->codigo_setor_exame] = $setor['setor_exame'];
-            array_push($Atualizado, json_decode($dadosAtulizado->dados));
-       }
+             array_push($Atualizado, json_decode($dadosAtulizado->dados));
+        }
 
-       $Agendado = [];
+        $Agendado = [];
+        $umovCheca = [];
+
        foreach($agendados as $agend){
         $agen = json_decode($agend->dados, true);
         $filtro[$agend->codigo_setor_exame] = $agen['setor_exame'];
         $agen['data_agendamento'] = $agend->data_agendamento;
         $agen['hora_agendamento'] = $agend->hora_agendamento;
-        $agen['data_movimentacao'] = $agend->created_at->format('d/m/Y H:i');
         $agen['sala'] = $agend->sala ? $agend->sala : null;
         $agen['status_tarefa'] = $agend->status_tarefa ? $agend->status_tarefa : null;
         $agen['numero_tarefa'] = $agend->numero_tarefa ? $agend->numero_tarefa : null;
@@ -84,12 +55,10 @@ class MoinhosController extends Controller
         $at = json_decode($atend->dados, true);
         $at['data_agendamento'] = $atend->data_agendamento;
         $at['hora_agendamento'] = $atend->hora_agendamento;
-        $at['data_movimentacao'] = $atend->created_at->format('d/m/Y H:i');
         $at['sala'] = $atend->sala ? $atend->sala : null;
         $at['numero_tarefa'] = $atend->numero_tarefa ? $atend->numero_tarefa : null;
         $at['imagem_cadeira'] = $atend->imagem_cadeira ? $atend->imagem_cadeira : null;
         $at['observacao'] = $atend->observacao ? $atend->observacao : null;
-        $at['cod_sala'] = $atend->cod_sala ? $atend->cod_sala : null;
         $filtro[$atend->codigo_setor_exame] = $at['setor_exame'];
         if($at['numero_tarefa'] != null){
             $umovCheca[] = $agen;
@@ -104,19 +73,18 @@ class MoinhosController extends Controller
         $p = json_decode($pos->dados, true);
         $p['data_agendamento'] = $pos->data_agendamento;
         $p['hora_agendamento'] = $pos->hora_agendamento;
-        $p['data_movimentacao'] = $pos->created_at->format('d/m/Y H:i');
         $p['sala'] = $pos->sala ? $pos->sala : null;
         $p['numero_tarefa'] = $pos->numero_tarefa ? $pos->numero_tarefa : null;
         $p['status_tarefa'] = $pos->status_tarefa ? $pos->status_tarefa : null;
         $p['imagem_cadeira'] = $pos->imagem_cadeira ? $pos->imagem_cadeira : null;
         $p['observacao'] = $pos->observacao ? $pos->observacao : null;
-        $p['cod_sala'] = $pos->cod_sala ? $pos->cod_sala : null;
         $filtro[$pos->codigo_setor_exame] = $p['setor_exame'];
         if($p['numero_tarefa'] != null && $p['status_tarefa'] != '50' && $p['status_tarefa'] != '70'){
-            $umovCheca[] = $pos;
+            $umovCheca[] = $agen;
         }
         array_push($posDados, $p);
        }
+
 
 
        $finDados = [];
@@ -138,7 +106,6 @@ class MoinhosController extends Controller
         }
         array_push($finDados, $f);
        }
-
 
         $arrayDados = [
             'solicitados' => $Atualizado,

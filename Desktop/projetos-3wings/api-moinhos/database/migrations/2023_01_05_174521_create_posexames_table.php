@@ -16,6 +16,15 @@ class CreatePosexamesTable extends Migration
         Schema::create('posexames', function (Blueprint $table) {
             $table->id();
             $table->string('acess_number');
+            $table->string('codigo_setor_exame');
+            $table->string('data_agendamento');
+            $table->string('hora_agendamento');
+            $table->string('numero_tarefa')->nullable();
+            $table->string('imagem_cadeira')->nullable();
+            $table->string('sala')->nullable();
+            $table->string('status_tarefa')->nullable();
+            $table->string('cod_sala')->nullable();
+            $table->longText('observacao')->nullable();
             $table->longText('dados');
             $table->timestamps();
         });

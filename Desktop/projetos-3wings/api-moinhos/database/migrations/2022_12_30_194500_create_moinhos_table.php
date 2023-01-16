@@ -16,6 +16,7 @@ class CreateMoinhosTable extends Migration
         Schema::create('moinhos', function (Blueprint $table) {
             $table->id();
             $table->string('acess_number');
+            $table->string('codigo_setor_exame');
             $table->timestamp('data');
             $table->longText('dados');
             $table->timestamps();

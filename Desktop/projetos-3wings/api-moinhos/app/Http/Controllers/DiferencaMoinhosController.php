@@ -7,6 +7,9 @@ use App\Models\Atendimento;
 use App\Models\Moinhos;
 use Illuminate\Http\Request;
 use App\Http\Views\Moinhos as ViewsMoinhos;
+use App\Models\Finalizado;
+use App\Models\Posexame;
+use Illuminate\Support\Facades\Artisan;
 
 class DiferencaMoinhosController extends Controller
 {
@@ -19,12 +22,15 @@ class DiferencaMoinhosController extends Controller
         $moinhos = Agendado::where('acess_number', $dados['acess_number'])->get();
         $atendimento = Atendimento::where('acess_number', $dados['acess_number'])->get();
         $solicitados = Moinhos::where('acess_number', $dados['acess_number'])->get();
-        if(!isset($moinhos[0]) && !isset($atendimento[0]) && !isset($solicitados[0])){
+        $pos = Posexame::where('acess_number', $dados['acess_number'])->get();
+        $fin = Finalizado::where('acess_number', $dados['acess_number'])->get();
+        if(!isset($moinhos[0]) && !isset($atendimento[0]) && !isset($solicitados[0]) && !isset($pos[0]) && !isset($fin[0])){
             array_push($moinhosArray, $dados);
             if($dados != ''){
                 Moinhos::create([
                     'acess_number' => $dados['acess_number'],
-                    'data' => $dados['hora_pedido'],
+                    'codigo_setor_exame' => $dados['codigo_setor_exame'],
+                    'data' => $dados['hora_pedidoX'],
                     'dados' =>  json_encode($dados)
                 ]);
             }
@@ -36,17 +42,26 @@ class DiferencaMoinhosController extends Controller
     ];
 
       
-      return response($arrayDados, 200);
+      return response($arrayDados, 200)->header('Retry-After', '3000');
 
     }
 
     public function atualizaDados(Request $request){
-        $agendado = Agendado::count();
         
-        if($agendado == $request->numero_count){
-            return response('', 200);
+            $agendado = Agendado::all()->count();
+            $atendimento = Atendimento::all()->count();
+            $posexame = Posexame::all()->count();
+            $finalizado = Finalizado::all()->count();
+       
+        
+        if($agendado == $request->agendado && $atendimento == $request->atendimento && $posexame == $request->posexame && $finalizado == $request->finalizado){
+            
+            return response('', 200)->header('Retry-After', '3000');
         }else{
-            return response('', 404);
+            
+            return response('', 404)->header('Retry-After', '3000');
         }
     }
+
+
 }
