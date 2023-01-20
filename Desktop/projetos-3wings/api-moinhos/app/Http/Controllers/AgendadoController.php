@@ -16,26 +16,26 @@ class AgendadoController extends Controller
 {
      public function agendar(AgendarValidation $request){
 
-      $responseToken = Http::asForm()->post('https://3wingsservices.hospitalmoinhos.org.br/token', [
-        'grant_type' => 'password',
-        'username' => 'srv.3wings',
-        'password' => 'Wings@1234'
-      ]);
+      // $responseToken = Http::asForm()->post('https://3wingsservices.hospitalmoinhos.org.br/token', [
+      //   'grant_type' => 'password',
+      //   'username' => 'srv.3wings',
+      //   'password' => 'Wings@1234'
+      // ]);
 
-      $moinhosApi = Http::withToken($responseToken->object()->access_token)->post('https://3wingsservices.hospitalmoinhos.org.br/api/ExameAgendado/', [
-      'numeroDeAcesso' => $request->acess_number,
-      'dataAgendamento' => $request->data_agendamento,
-      'horaAgendamento' => $request->hora_agendamento,
-      'status' => "R",
-      'dataHoraMovimentacao' => "",
-      'usuario' => ""
-      ]);
+      // $moinhosApi = Http::withToken($responseToken->object()->access_token)->post('https://3wingsservices.hospitalmoinhos.org.br/api/ExameAgendado/', [
+      // 'numeroDeAcesso' => $request->acess_number,
+      // 'dataAgendamento' => $request->data_agendamento,
+      // 'horaAgendamento' => $request->hora_agendamento,
+      // 'status' => "R",
+      // 'dataHoraMovimentacao' => "",
+      // 'usuario' => ""
+      // ]);
 
       
       $remove = Moinhos::where('acess_number', $request->acess_number)->first();
-      $remove->delete();
-
-        Agendado::create([
+      if($remove){
+        $remove->delete();
+          Agendado::create([
             'acess_number' => $request->acess_number,
             'codigo_setor_exame' => $request->codigo_setor_exame,
             'data_agendamento' => $request->data_agendamento,
@@ -43,6 +43,8 @@ class AgendadoController extends Controller
             'imagem_cadeira' => $request->imagem_cadeira,
             'dados' => json_encode($request->dados)
         ]);
+      }
+      
 
         return response([], 200)->header('Retry-After', '3000');
      }
@@ -50,15 +52,16 @@ class AgendadoController extends Controller
      public function pegarTarefa(Request $request, $id){
         if($request->origem == 'agendado'){
           $agendado = Agendado::where('acess_number', $id)->first();
+          $agendado->sala = $request->sala;
+          $agendado->cod_sala = $request->cod_sala;
         }else{
           $agendado = Posexame::where('acess_number', $id)->first();
         }
         
         $agendado->numero_tarefa = $request->numero_tarefa;
         $agendado->imagem_cadeira = $request->imagem_cadeira;
-        $agendado->sala = $request->sala;
         $agendado->status_tarefa = $request->status_tarefa;
-        $agendado->cod_sala = $request->cod_sala;
+      
         $agendado->save();
 
         return response('', 200)->header('Retry-After', '3000');
@@ -77,6 +80,7 @@ class AgendadoController extends Controller
       }
       
       $agendado->observacao = $request->observacao;
+      $agendado->observacao_select = $request->observacao_select;
       $agendado->save();
 
       return response('', 200)->header('Retry-After', '3000');

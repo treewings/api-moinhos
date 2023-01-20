@@ -3,25 +3,41 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ConsultaValidation;
+use App\Models\Agendado;
+use App\Models\Atendimento;
+use App\Models\Finalizado;
+use App\Models\Posexame;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class FiltroController extends Controller
 {
-    public function consulta(ConsultaValidation $request){
+    public function consulta(Request $request){
 
         $consulta = function ($query) use ($request)
         {
             if($request->has('codigo_setor_exame')){
                 $query->where('codigo_setor_exame', $request->get('codigo_setor_exame'));
             }
+
+            if($request->has('cod_sala')){
+                $query->where('cod_sala', $request->get('cod_sala'));
+            }
+
         };
 
-        $moinhos = DB::table('moinhos')->where($consulta)->get();
-        $agendados = DB::table('agendados')->where($consulta)->get();
-        $atendimentos = DB::table('atendimentos')->where($consulta)->get();
-        $posexame = DB::table('posexames')->where($consulta)->get();
-        $finalizado = DB::table('finalizados')->where($consulta)->get();
+        if($request->has('cod_sala')){
+            $moinhos = DB::table('moinhos')->get();
+        }
+        if($request->has('codigo_setor_exame')){
+            $moinhos = DB::table('moinhos')->where($consulta)->get();
+        }
+        
+        
+        $agendados = Agendado::where($consulta)->get();
+        $atendimentos = Atendimento::where($consulta)->get();
+        $posexame = Posexame::where($consulta)->get();
+        $finalizado = Finalizado::where($consulta)->get();
         $filtro = [];
         $Atualizado = [];
         foreach($moinhos as $dadosAtulizado){
@@ -32,13 +48,20 @@ class FiltroController extends Controller
 
         $Agendado = [];
         $umovCheca = [];
+        $filtroSala = [];
 
        foreach($agendados as $agend){
         $agen = json_decode($agend->dados, true);
         $filtro[$agend->codigo_setor_exame] = $agen['setor_exame'];
+        if($agend->cod_sala){
+            $filtroSala[$agend->cod_sala] = $agend->sala;
+            
+        }
         $agen['data_agendamento'] = $agend->data_agendamento;
         $agen['hora_agendamento'] = $agend->hora_agendamento;
+        $agen['observacao_select'] = $agend->observacao_select;
         $agen['sala'] = $agend->sala ? $agend->sala : null;
+        $agen['data_movimentacao'] = $agend->created_at->format('d/m/Y H:i');
         $agen['status_tarefa'] = $agend->status_tarefa ? $agend->status_tarefa : null;
         $agen['numero_tarefa'] = $agend->numero_tarefa ? $agend->numero_tarefa : null;
         $agen['imagem_cadeira'] = $agend->imagem_cadeira ? $agend->imagem_cadeira : null;
@@ -53,9 +76,14 @@ class FiltroController extends Controller
        $Atendimento = [];
        foreach($atendimentos as $atend){
         $at = json_decode($atend->dados, true);
+        if($atend->cod_sala){
+            $filtroSala[$atend->cod_sala] = $atend->sala;
+        }
         $at['data_agendamento'] = $atend->data_agendamento;
         $at['hora_agendamento'] = $atend->hora_agendamento;
+        $at['observacao_select'] = $atend->observacao_select;
         $at['sala'] = $atend->sala ? $atend->sala : null;
+        $at['data_movimentacao'] = $atend->created_at->format('d/m/Y H:i');
         $at['numero_tarefa'] = $atend->numero_tarefa ? $atend->numero_tarefa : null;
         $at['imagem_cadeira'] = $atend->imagem_cadeira ? $atend->imagem_cadeira : null;
         $at['observacao'] = $atend->observacao ? $atend->observacao : null;
@@ -71,9 +99,14 @@ class FiltroController extends Controller
 
        foreach($posexame as $pos){
         $p = json_decode($pos->dados, true);
+        if($pos->cod_sala){
+            $filtroSala[$pos->cod_sala] = $pos->sala;
+        }
         $p['data_agendamento'] = $pos->data_agendamento;
         $p['hora_agendamento'] = $pos->hora_agendamento;
+        $p['observacao_select'] = $pos->observacao_select;
         $p['sala'] = $pos->sala ? $pos->sala : null;
+        $p['data_movimentacao'] = $pos->created_at->format('d/m/Y H:i');
         $p['numero_tarefa'] = $pos->numero_tarefa ? $pos->numero_tarefa : null;
         $p['status_tarefa'] = $pos->status_tarefa ? $pos->status_tarefa : null;
         $p['imagem_cadeira'] = $pos->imagem_cadeira ? $pos->imagem_cadeira : null;
@@ -91,8 +124,12 @@ class FiltroController extends Controller
 
        foreach($finalizado as $fin){
         $f = json_decode($fin->dados, true);
+        if($fin->cod_sala){
+            $filtroSala[$fin->cod_sala] = $fin->sala;
+        }
         $f['data_agendamento'] = $fin->data_agendamento;
         $f['hora_agendamento'] = $fin->hora_agendamento;
+        $f['observacao_select'] = $fin->observacao_select;
         $f['data_movimentacao'] = $fin->created_at->format('d/m/Y H:i');
         $f['sala'] = $fin->sala ? $fin->sala : null;
         $f['numero_tarefa'] = $fin->numero_tarefa ? $fin->numero_tarefa : null;
@@ -121,6 +158,7 @@ class FiltroController extends Controller
                 'total_finalizados' => count($finDados)
             ],
             'filtro' => $filtro,
+            'filtroSala' => $filtroSala,
             'umovCheca' => $umovCheca
         ];
 

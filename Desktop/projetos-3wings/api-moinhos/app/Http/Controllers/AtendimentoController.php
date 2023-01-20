@@ -5,18 +5,43 @@ namespace App\Http\Controllers;
 use App\Http\Requests\AgendarValidation;
 use App\Models\Agendado;
 use App\Models\Atendimento;
+use App\Models\Finalizado;
+use App\Models\Posexame;
 use Illuminate\Http\Request;
 
 class AtendimentoController extends Controller
 {
     //
     public function atendimento(Request $request){
+
+       if($request->origem == 'posexame'){
+          $pos = Posexame::where('acess_number', $request->acess_number)->first();
+
+          if($pos){
+               Finalizado::create([
+                   'acess_number' => $request->acess_number,
+                   'codigo_setor_exame' => $pos->codigo_setor_exame,
+                   'data_agendamento' => $pos->data_agendamento,
+                   'hora_agendamento' => $pos->hora_agendamento,
+                   'sala' => $pos->sala,
+                   'cod_sala' => $pos->cod_sala,
+                   'observacao' => $pos->observacao,
+                   'dados' => $pos->dados
+                   ]);
+
+              $pos->delete();     
+               return response([], 200)->header('Retry-After', '3000');
+          }else{
+                   return response('', 404)->header('Retry-After', '3000');
+          }
+       }
+
        $agendados = Agendado::where('acess_number', $request->acess_number)->first();
 
        if($agendados){
         Atendimento::create([
             'acess_number' => $request->acess_number,
-            'codigo_setor_exame' => $request->codigo_setor_exame,
+            'codigo_setor_exame' => $agendados->codigo_setor_exame,
             'data_agendamento' => $agendados->data_agendamento,
             'hora_agendamento' => $agendados->hora_agendamento,
             'sala' => $agendados->sala,

@@ -25,6 +25,7 @@ class CreateFinalizadosTable extends Migration
             $table->string('status_tarefa')->nullable();
             $table->string('cod_sala')->nullable();
             $table->longText('observacao')->nullable();
+            $table->longText('observacao_select')->nullable();
             $table->longText('dados');
             $table->timestamps();
         });
