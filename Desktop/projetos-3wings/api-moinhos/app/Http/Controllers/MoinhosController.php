@@ -62,6 +62,12 @@ class MoinhosController extends Controller
             $hora = $dataAtual->diff($dadosAtulizado->data);
             $horas = '';
             $minutos = '';
+            $mes = '';
+            if($hora->m == 0){
+                $mes = '';
+            }else{
+                $mes = $hora->m.'m ';
+            }
             if(strlen($hora->h) == 1){
                 $horas = '0'.$hora->h;
             }else{
@@ -74,7 +80,7 @@ class MoinhosController extends Controller
                 $minutos = $hora->i;
             }
             
-            $setor['data_diferenca'] = $hora->m.'m '.$hora->d.'d '.$horas.':'.$minutos;
+            $setor['data_diferenca'] = $mes.$hora->d.'d '.$horas.':'.$minutos;
             $filtro[$dadosAtulizado->codigo_setor_exame] = $setor['setor_exame'];
             array_push($Atualizado, $setor);
        }
@@ -91,6 +97,12 @@ class MoinhosController extends Controller
         $hora = $dataAtual->diff($agend->updated_at);
         $horas = '';
         $minutos = '';
+        $mes = '';
+        if($hora->m == 0){
+            $mes = '';
+        }else{
+            $mes = $hora->m.'m ';
+        }
         if(strlen($hora->h) == 1){
             $horas = '0'.$hora->h;
         }else{
@@ -103,7 +115,7 @@ class MoinhosController extends Controller
             $minutos = $hora->i;
         }
         
-        $agen['data_diferenca'] = $hora->m.'m '.$hora->d.'d '.$horas.':'.$minutos;
+        $agen['data_diferenca'] = $mes.$hora->d.'d '.$horas.':'.$minutos;
         $agen['data_agendamento'] = $agend->data_agendamento;
         $agen['hora_agendamento'] = $agend->hora_agendamento;
         $agen['observacao_select'] = $agend->observacao_select;
@@ -129,6 +141,12 @@ class MoinhosController extends Controller
         $hora = $dataAtual->diff($atend->updated_at);
         $horas = '';
         $minutos = '';
+        $mes = '';
+        if($hora->m == 0){
+            $mes = '';
+        }else{
+            $mes = $hora->m.'m ';
+        }
         if(strlen($hora->h) == 1){
             $horas = '0'.$hora->h;
         }else{
@@ -141,7 +159,7 @@ class MoinhosController extends Controller
             $minutos = $hora->i;
         }
         
-        $at['data_diferenca'] = $hora->m.'m '.$hora->d.'d '.$horas.':'.$minutos;
+        $at['data_diferenca'] = $mes.$hora->d.'d '.$horas.':'.$minutos;
         $at['data_agendamento'] = $atend->data_agendamento;
         $at['hora_agendamento'] = $atend->hora_agendamento;
         $at['observacao_select'] = $atend->observacao_select;
@@ -166,6 +184,28 @@ class MoinhosController extends Controller
         if($pos->cod_sala){
             $filtroSala[$pos->cod_sala] = $pos->sala;
         }
+        $hora = $dataAtual->diff($pos->updated_at);
+        $horas = '';
+        $minutos = '';
+        $mes = '';
+        if($hora->m == 0){
+            $mes = '';
+        }else{
+            $mes = $hora->m.'m ';
+        }
+        if(strlen($hora->h) == 1){
+            $horas = '0'.$hora->h;
+        }else{
+            $horas = $hora->h;
+        }
+        
+        if(strlen($hora->i) == 1){
+            $minutos = '0'.$hora->i;
+        }else{
+            $minutos = $hora->i;
+        }
+        
+        $p['data_diferenca'] = $mes.$hora->d.'d '.$horas.':'.$minutos;
         $p['data_agendamento'] = $pos->data_agendamento;
         $p['hora_agendamento'] = $pos->hora_agendamento;
         $p['observacao_select'] = $pos->observacao_select;
@@ -191,6 +231,28 @@ class MoinhosController extends Controller
         if($fin->cod_sala){
             $filtroSala[$fin->cod_sala] = $fin->sala;
         }
+        $hora = $dataAtual->diff($fin->updated_at);
+        $horas = '';
+        $minutos = '';
+        $mes = '';
+        if($hora->m == 0){
+            $mes = '';
+        }else{
+            $mes = $hora->m.'m ';
+        }
+        if(strlen($hora->h) == 1){
+            $horas = '0'.$hora->h;
+        }else{
+            $horas = $hora->h;
+        }
+        
+        if(strlen($hora->i) == 1){
+            $minutos = '0'.$hora->i;
+        }else{
+            $minutos = $hora->i;
+        }
+        
+        $f['data_diferenca'] = $mes.$hora->d.'d '.$horas.':'.$minutos;
         $f['data_agendamento'] = $fin->data_agendamento;
         $f['hora_agendamento'] = $fin->hora_agendamento;
         $f['observacao_select'] = $fin->observacao_select;
